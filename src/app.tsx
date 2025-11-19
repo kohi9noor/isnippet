@@ -4,29 +4,35 @@ function App() {
   const [createNewVault, setCreateNewVault] = useState(false);
 
   return (
-    <div className=" w-full min-h-screen bg-primary text-primary-foreground flex flex-col items-center justify-center">
-      <div className=" container  mx-auto ">
-        <div className=" py-8">
-          <h1 className=" text-2xl font-bold text-center">Isnippet</h1>
-          <p className=" text-center text-sm text-muted">
-            Manage your secure vaults with ease.
+    <div className="w-full min-h-screen bg-primary text-primary-foreground flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center gap-12">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-light tracking-wide">isnippet</h1>
+          <p className="text-xs text-muted font-light tracking-widest uppercase">
+            Where your snippets make sense
           </p>
         </div>
-        <div className=" flex flex-col gap-2 w-fit mx-auto">
+
+        <div className="w-72">
           {!createNewVault ? (
-            <div className=" flex flex-col gap-2">
-              <button className="min-w-[148px] px-2 hover:bg-secondary/60 cursor-pointer text-sm  border-muted border flex flex-col items-center justify-center rounded-xl h-10 bg-secondary text-secondary-foreground">
-                Select your existing vault
+            <div className="space-y-2 flex flex-col">
+              <button className="w-full px-4 py-3 text-sm font-light border border-muted/20 rounded-lg hover:bg-secondary/30 transition-all duration-300">
+                Select vault
               </button>
               <button
-                onClick={() => setCreateNewVault((prev) => !prev)}
-                className="min-w-[148px] px-2 hover:bg-secondary/60 cursor-pointer text-sm  border-muted border flex flex-col items-center justify-center rounded-xl h-10 bg-secondary text-secondary-foreground"
+                onClick={() => setCreateNewVault(true)}
+                className="w-full px-4 py-3 text-sm font-light border border-muted/20 rounded-lg hover:bg-secondary/30 transition-all duration-300"
               >
-                Create a new vault
+                Create vault
               </button>
             </div>
           ) : (
-            <div></div>
+            <button
+              onClick={() => setCreateNewVault(false)}
+              className="w-full px-4 py-3 text-sm font-light border border-muted/20 rounded-lg hover:bg-secondary/30 transition-all duration-300"
+            >
+              ← back
+            </button>
           )}
         </div>
       </div>
