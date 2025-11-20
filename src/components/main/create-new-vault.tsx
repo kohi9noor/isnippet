@@ -24,9 +24,18 @@ const CreateNewVault = () => {
     window.api.initializeVault({ basePath: selectedPath, vaultName });
   };
 
+  const importVault = async () => {
+    const result = await window.api.importVault();
+    if (result.success) {
+      console.log("Vault imported successfully", result);
+    } else {
+      console.error("Failed to import vault:", result);
+    }
+  };
+
   return step === "choose" ? (
     <div className="flex flex-col space-y-2">
-      <Button>Import vault</Button>
+      <Button onClick={importVault}>Import vault</Button>
       <Button onClick={() => setStep("create")}>Create a vault</Button>
     </div>
   ) : (

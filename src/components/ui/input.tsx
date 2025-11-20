@@ -1,4 +1,4 @@
-import { cn } from "../../utils/utils";
+import { cn } from "../../utils";
 
 const Input = <
   T extends React.InputHTMLAttributes<HTMLInputElement> & { error?: boolean }
