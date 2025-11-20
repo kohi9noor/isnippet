@@ -26,5 +26,10 @@ interface Window {
   ipcRenderer: import("electron").IpcRenderer;
   api: {
     readVault: (filePath: string) => Promise<string>;
+    selectPath: () => Promise<string | null>;
+    initializeVault: (options: {
+      basePath: string;
+      vaultName: string;
+    }) => Promise<{ success: boolean; vaultName: string; message?: string }>;
   };
 }

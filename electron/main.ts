@@ -1,9 +1,7 @@
-import { app, BrowserWindow, ipcMain } from "electron";
-import { createRequire } from "node:module";
+import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "node:fs";
-const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // The built directory structure
@@ -15,6 +13,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // │ │ ├── main.js
 // │ │ └── preload.mjs
 // │
+
+function ensureDir(dirPath: string) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
 
 process.env.APP_ROOT = path.join(__dirname, "..");
 
@@ -69,9 +73,52 @@ app.on("activate", () => {
   }
 });
 
-ipcMain.handle("read_vault", async (_, path) => {
-  console.log("path:", path);
-  const files = fs.readdirSync(path, { withFileTypes: true });
+ipcMain.handle("select-path", async () => {
+  const result = await dialog.showOpenDialog({
+    title: "Select Vault Location",
+    properties: ["openDirectory", "createDirectory"],
+  });
+
+  if (result.canceled) return null;
+
+  return result.filePaths[0];
+});
+
+ipcMain.handle("initialize-vault", async (_, { basePath, vaultName }) => {
+  const vaultPath = path.join(basePath, vaultName);
+
+  try {
+    ensureDir(vaultPath);
+    ensureDir(path.join(vaultPath, "snippets"));
+    ensureDir(path.join(vaultPath, ".isnippet"));
+    const indexJson = { snippets: {} };
+    const settingsJson = {
+      autoOrganize: true,
+      autoTags: true,
+      autoSummary: false,
+      createdAt: Date.now(),
+    };
+    const workspaceJson = {
+      lastOpened: Date.now(),
+      sidebarOpen: true,
+    };
+
+    fs.writeFileSync(
+      path.join(vaultPath, ".isnippet", "index.json"),
+      JSON.stringify(indexJson, null, 2)
+    );
+    fs.writeFileSync(
+      path.join(vaultPath, ".isnippet", "settings.json"),
+      JSON.stringify(settingsJson, null, 2)
+    );
+    fs.writeFileSync(
+      path.join(vaultPath, ".isnippet", "workspace.json"),
+      JSON.stringify(workspaceJson, null, 2)
+    );
+    return { success: true, vaultPath };
+  } catch (error) {
+    return { success: false, error: (error as Error).message };
+  }
 });
 
 app.whenReady().then(createWindow);

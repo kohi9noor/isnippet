@@ -25,4 +25,11 @@ contextBridge.exposeInMainWorld("api", {
   readVault: (filePath: string) => {
     return ipcRenderer.invoke("read_vault", filePath);
   },
+
+  selectPath: () => {
+    return ipcRenderer.invoke("select-path");
+  },
+  initializeVault: (options: { basePath: string; vaultName: string }) => {
+    return ipcRenderer.invoke("initialize-vault", options);
+  },
 });
