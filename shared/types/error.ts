@@ -4,6 +4,8 @@ export const ERROR_MESSAGES = {
   VAULT_PATH_NOT_EXIST:
     "The vault folder no longer exists. Try selecting it again.",
   VAULT_NAME_EMPTY: "Please enter a vault name.",
+  VAULT_ALREADY_EXISTS:
+    "A vault with this name already exists at the selected location.",
   NO_VAULT_SELECTED: "Please select a vault location.",
   UNKNOWN_ERROR: "Something went wrong. Please try again.",
 } as const;

@@ -2,9 +2,19 @@ import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "node:fs";
-import { InitializeVaultResponse, IpcResponse } from "../shared/types/icp";
-import { VaultData } from "../shared/types/vault";
-import { ensureDir, getIsnippetData, writeJsonFile } from "../shared/utils/fs";
+import {
+  ImportVaultResponse,
+  InitializeVaultResponse,
+  IpcResponse,
+} from "../shared/types/icp";
+import { Config, VaultData } from "../shared/types/vault";
+import {
+  ensureDir,
+  getIsnippetData,
+  loadConfig,
+  saveConfig,
+  writeJsonFile,
+} from "../shared/utils/fs";
 import { initializeVaultDefaultJson } from "../shared/utils/vault";
 import { AppError } from "../shared/utils/error";
 
@@ -24,9 +34,9 @@ process.env.VITE_PUBLIC = VITE_PUBLIC;
 
 let win: BrowserWindow | null;
 
-// Map raw errors to AppError codes
+const configPath = path.join(app.getPath("userData"), "config.json");
 
-function createWindow() {
+function createWindow(config?: Config) {
   win = new BrowserWindow({
     icon: path.join(VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
@@ -37,6 +47,9 @@ function createWindow() {
 
   win.webContents.on("did-finish-load", () => {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
+    if (config?.activeVault) {
+      win?.webContents.send("auto-open-vault", config);
+    }
   });
 
   if (VITE_DEV_SERVER_URL) {
@@ -81,7 +94,7 @@ ipcMain.handle(
     const vaultPath = path.join(basePath, vaultName);
 
     if (fs.existsSync(vaultPath)) {
-      throw new Error("Vault already exists at this location.");
+      throw AppError("VAULT_ALREADY_EXISTS");
     }
 
     ensureDir(vaultPath);
@@ -99,6 +112,20 @@ ipcMain.handle(
       workspace
     );
 
+    const config = loadConfig(configPath) || {
+      activeVault: null,
+      recentVaults: [],
+    };
+
+    config.activeVault = vaultPath;
+
+    config.recentVaults = [
+      vaultPath,
+      ...config.recentVaults.filter((v) => v !== vaultPath),
+    ];
+
+    saveConfig(configPath, config);
+
     return {
       success: true,
       data: { settings, workspace, index },
@@ -108,7 +135,7 @@ ipcMain.handle(
   }
 );
 
-ipcMain.handle("import-vault", async (): Promise<IpcResponse<VaultData>> => {
+ipcMain.handle("import-vault", async (): Promise<ImportVaultResponse> => {
   const vaultPath = await dialog
     .showOpenDialog({
       title: "Select Vault Folder",
@@ -128,6 +155,20 @@ ipcMain.handle("import-vault", async (): Promise<IpcResponse<VaultData>> => {
 
   const data = getIsnippetData(vaultPath);
 
+  const config = loadConfig(configPath) || {
+    activeVault: null,
+    recentVaults: [],
+  };
+
+  config.activeVault = vaultPath;
+
+  config.recentVaults = [
+    vaultPath,
+    ...config.recentVaults.filter((v) => v !== vaultPath),
+  ];
+  console.log("config_path", configPath);
+  saveConfig(configPath, config);
+
   return {
     success: true,
     vaultPath,
@@ -136,4 +177,26 @@ ipcMain.handle("import-vault", async (): Promise<IpcResponse<VaultData>> => {
   };
 });
 
-app.whenReady().then(createWindow);
+ipcMain.handle(
+  "read-vault",
+  async (_, vaultPath: string): Promise<IpcResponse<VaultData>> => {
+    const isnippetDir = path.join(vaultPath, ".isnippet");
+    if (!fs.existsSync(isnippetDir)) {
+      throw AppError("INVALID_VAULT");
+    }
+
+    const data = getIsnippetData(vaultPath);
+
+    return {
+      success: true,
+      vaultPath,
+      vaultName: path.basename(vaultPath),
+      data,
+    };
+  }
+);
+
+app.whenReady().then(() => {
+  const config = loadConfig(configPath) || undefined;
+  createWindow(config);
+});

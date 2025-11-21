@@ -1,9 +1,17 @@
-import { VaultData } from "@shared/types/vault";
+import { VaultData } from "./vault";
 
-export type IpcResponse<T = unknown> =
-  | { success: true; data: T; vaultPath: string; vaultName: string }
-  | { success: false; error: string };
+export type SucessResposne<T> = {
+  success: true;
+  data: T;
+  vaultPath: string;
+  vaultName: string;
+};
 
-export type InitializeVaultResponse = IpcResponse<VaultData>;
+export type FailureResponse = {
+  success: false;
+  error: string;
+};
 
+export type IpcResponse<T = unknown> = SucessResposne<T> | FailureResponse;
 export type ImportVaultResponse = IpcResponse<VaultData>;
+export type InitializeVaultResponse = IpcResponse<VaultData>;

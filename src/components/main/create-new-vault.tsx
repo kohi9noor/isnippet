@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Button from "../ui/button";
 import Input from "../ui/input";
 import { useVaultStore } from "@/store/vault.store";
@@ -14,9 +14,11 @@ const CreateNewVault = () => {
     null | { type: "name" } | { type: "path"; message?: string }
   >(null);
 
-  const { initializeVault, importVault } = useVaultStore();
+  const { initializeVault, importVault, vaultData } = useVaultStore();
 
-  const clearError = () => error && setError(null);
+  const clearError = useCallback(() => {
+    error && setError(null);
+  }, [error]);
 
   const selectPath = async () => {
     const folder = await window.api.selectPath();
@@ -25,6 +27,15 @@ const CreateNewVault = () => {
       clearError();
     }
   };
+
+  useEffect(() => {
+    if (vaultData.status === "idle" || vaultData.status === "loading") return;
+    if (vaultData.data?.success) {
+      setVaultName("");
+      setSelectedPath(null);
+      clearError();
+    }
+  }, [clearError, vaultData]);
 
   const handleCreateVault = async () => {
     if (!vaultName) return setError({ type: "name" });
@@ -39,6 +50,7 @@ const CreateNewVault = () => {
       setError({ message: result.error, type: "path" });
     }
   };
+
   const handleBackclick = () => {
     setStep("choose");
     clearError();

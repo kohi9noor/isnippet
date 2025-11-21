@@ -1,7 +1,4 @@
-import {
-  InitializeVaultResponse,
-  ImportVaultResponse,
-} from "@shared/types/icp";
+import { SucessResposne } from "@shared/types/icp";
 export interface VaultSettings {
   autoOrganize: boolean;
   autoTags: boolean;
@@ -36,6 +33,11 @@ export type InitializeVaultReq = {
 
 export interface ImportVaultReq {}
 
+export interface Config {
+  activeVault: string | null;
+  recentVaults: string[];
+}
+
 /**
  *
  * VaultDataStore: inside the data,
@@ -44,7 +46,8 @@ export interface ImportVaultReq {}
  *
  */
 
-export type VaultDataStore = {
-  status: "idle" | "loading" | "success" | "error";
-  data: InitializeVaultResponse | ImportVaultResponse | null;
-};
+export type VaultDataStore =
+  | { status: "idle"; data: null }
+  | { status: "loading"; data: null }
+  | { status: "success"; data: SucessResposne<VaultData> }
+  | { status: "error"; error: string };

@@ -1,5 +1,6 @@
 import { ICP_CHANNELS } from "../shared/types/channels";
 import { ipcRenderer, contextBridge } from "electron";
+import { Config } from "../shared/types/vault";
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("ipcRenderer", {
@@ -32,5 +33,16 @@ contextBridge.exposeInMainWorld("api", {
   },
   importVault: () => {
     return ipcRenderer.invoke(ICP_CHANNELS.IMPORT_VAULT);
+  },
+  readVault: (vaultPath: string) => {
+    return ipcRenderer.invoke(ICP_CHANNELS.READ_VAULT, vaultPath);
+  },
+});
+
+contextBridge.exposeInMainWorld("events", {
+  autoOpenVault: (callback: (config: Config) => void) => {
+    ipcRenderer.on("auto-open-vault", (_, config: Config) => {
+      callback(config);
+    });
   },
 });
