@@ -1,5 +1,5 @@
 export {};
-
+import { InitializeVaultResponse, IpcResponse } from "@shared/types/ipc";
 declare global {
   interface Window {
     api: {

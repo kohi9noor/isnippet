@@ -1,12 +1,20 @@
 import { useState } from "react";
 import Button from "../ui/button";
 import Input from "../ui/input";
+import { useVaultStore } from "@/store/vault.store";
 
 const CreateNewVault = () => {
   const [step, setStep] = useState<"choose" | "create">("choose");
+
   const [vaultName, setVaultName] = useState("");
+
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
-  const [error, setError] = useState<null | "name" | "path">(null);
+
+  const [error, setError] = useState<
+    null | { type: "name" } | { type: "path"; message?: string }
+  >(null);
+
+  const { initializeVault, importVault } = useVaultStore();
 
   const clearError = () => error && setError(null);
 
@@ -18,31 +26,39 @@ const CreateNewVault = () => {
     }
   };
 
-  const createVault = () => {
-    if (!vaultName) return setError("name");
-    if (!selectedPath) return setError("path");
-    window.api.initializeVault({ basePath: selectedPath, vaultName });
+  const handleCreateVault = async () => {
+    if (!vaultName) return setError({ type: "name" });
+    if (!selectedPath) return setError({ type: "path" });
+    await initializeVault({ basePath: selectedPath, vaultName });
   };
 
-  const importVault = async () => {
-    const result = await window.api.importVault();
-    if (result.success) {
-      console.log("Vault imported successfully", result);
-    } else {
-      console.error("Failed to import vault:", result);
+  const handleImportVault = async () => {
+    const result = await importVault();
+    if (!result.success) {
+      console.log("Import vault error:", result.error);
+      setError({ message: result.error, type: "path" });
     }
+  };
+  const handleBackclick = () => {
+    setStep("choose");
+    clearError();
+    setSelectedPath(null);
+    setVaultName("");
   };
 
   return step === "choose" ? (
     <div className="flex flex-col space-y-2">
-      <Button onClick={importVault}>Import vault</Button>
+      <Button onClick={handleImportVault}>Import vault</Button>
       <Button onClick={() => setStep("create")}>Create a vault</Button>
+      <div className=" text-center text-red-400">
+        <p className="text-sm ">{error?.type === "path" && error.message}</p>
+      </div>
     </div>
   ) : (
     <div className="flex flex-col space-y-2">
       <Input
         value={vaultName}
-        error={error === "name"}
+        error={error?.type === "name"}
         onChange={(e) => {
           setVaultName(e.target.value);
           clearError();
@@ -53,19 +69,19 @@ const CreateNewVault = () => {
       <div
         onClick={selectPath}
         className={`text-sm cursor-pointer w-full px-4 py-3 border rounded-md truncate ${
-          error === "path" ? "border-red-500" : "border-muted/20"
+          error?.type === "path" ? "border-red-500" : "border-muted/20"
         }`}
       >
         {selectedPath || <span>Select vault location</span>}
       </div>
 
-      <Button onClick={createVault} className="hover:bg-muted/60">
+      <Button onClick={handleCreateVault} className="hover:bg-muted/60">
         Create Vault
       </Button>
 
       <Button
         className="bg-transparent border-none"
-        onClick={() => setStep("choose")}
+        onClick={() => handleBackclick()}
       >
         ← back
       </Button>

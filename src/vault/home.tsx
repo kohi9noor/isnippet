@@ -7,7 +7,7 @@ const Home = () => {
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-light tracking-wide">isnippet</h1>
           <p className="text-xs text-muted font-light tracking-widest uppercase">
-            Where your snippets make sense
+            Where Your snippets make sense
           </p>
         </div>
 
