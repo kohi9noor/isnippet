@@ -1,4 +1,3 @@
-import { SucessResposne } from "@shared/types/icp";
 export interface VaultSettings {
   autoOrganize: boolean;
   autoTags: boolean;
@@ -38,16 +37,8 @@ export interface Config {
   recentVaults: string[];
 }
 
-/**
- *
- * VaultDataStore: inside the data,
- * status: indicates the current state of the vault data (idle, loading, success, error)
- * data: holds the actual vault data or null if not available
- *
- */
-
 export type VaultDataStore =
   | { status: "idle"; data: null }
   | { status: "loading"; data: null }
-  | { status: "success"; data: SucessResposne<VaultData> }
+  | { status: "success"; vaultName: string; vaultPath: string; data: VaultData }
   | { status: "error"; error: string };

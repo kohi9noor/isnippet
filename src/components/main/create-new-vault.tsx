@@ -30,12 +30,12 @@ const CreateNewVault = () => {
 
   useEffect(() => {
     if (vaultData.status === "idle" || vaultData.status === "loading") return;
-    if (vaultData.data?.success) {
+    if (vaultData.status === "success") {
       setVaultName("");
       setSelectedPath(null);
       clearError();
     }
-  }, [clearError, vaultData]);
+  }, [clearError, vaultData.status]);
 
   const handleCreateVault = async () => {
     if (!vaultName) return setError({ type: "name" });

@@ -17,12 +17,13 @@ type VaultStore = {
 export const useVaultStore = create<VaultStore>((set) => ({
   initializeVault: async (payload) => {
     const response = await window.api.initializeVault(payload);
+
     if (response.success === false) {
       set({ vaultData: { status: "error", error: response.error } });
       return response;
     }
 
-    set({ vaultData: { status: "success", data: response } });
+    set({ vaultData: { status: "success", ...response } });
 
     return response;
   },
@@ -36,12 +37,12 @@ export const useVaultStore = create<VaultStore>((set) => ({
       set({ vaultData: { status: "error", error: response.error } });
       return response;
     }
-    set({ vaultData: { status: "success", data: response } });
+    set({ vaultData: { status: "success", ...response } });
 
     return response;
   },
   setVaultData: (data: SucessResposne<VaultData>) => {
-    set({ vaultData: { status: "success", data } });
+    set({ vaultData: { status: "success", ...data } });
   },
   resetStore: () => set({ vaultData: { status: "idle" } as VaultDataStore }),
 }));
